@@ -21,7 +21,7 @@ Design a URL shortener service that can convert long URLs into short, shareable 
    - When a short URL is accessed, redirect to the original long URL
    - Handle invalid/non-existent short URLs gracefully
 
-3. **Analytics** (Optional for MVP)
+3. **Analytics**
    - Track click counts for each short URL
    - Record timestamps of accesses
    - Provide basic statistics

@@ -19,7 +19,6 @@
 │             │    │      ...    │
 └──────┬──────┘    └──────┬──────┘
        │                  │
-       ├──────────────────┤
        │                  │
        └──────────┬───────┘
                   │
@@ -73,7 +72,7 @@
 - **302 Found** (redirect to original URL)
 - **404 Not Found** (if short code doesn't exist)
 
-### 3. Get Analytics (Optional)
+### 3. Get Analytics
 
 **Endpoint:** `GET /api/v1/analytics/{short_code}`
 
@@ -88,7 +87,7 @@
 }
 ```
 
-**Note:** `click_count` is incremented and `last_accessed` is updated on each redirect request (see Read Flow in Caching Strategy section). This enables both analytics tracking and cache TTL optimization based on URL popularity.
+**Note:** `click_count` is incremented and `last_accessed` is updated synchronously on each redirect request (see Read Flow in Caching Strategy section). This enables both analytics tracking and cache TTL optimization based on URL popularity.
 
 ## Database Design
 
@@ -172,15 +171,15 @@ The counter-based approach provides guaranteed uniqueness without collision hand
 **Read Flow (Redirect):**
 1. Check Redis cache first
 2. If cache hit:
-   - Increment `click_count` and update `last_accessed` in database (async or sync, depending on requirements)
+   - Increment `click_count` and update `last_accessed` in database (synchronous)
    - Return redirect immediately
 3. If cache miss:
    - Query PostgreSQL for original URL
-   - Increment `click_count` and update `last_accessed` in database
+   - Increment `click_count` and update `last_accessed` in database (synchronous)
    - Store result in Redis with TTL (based on updated click_count)
    - Return redirect to client
 
-**Note:** `click_count` and `last_accessed` updates can be done asynchronously to avoid impacting redirect latency, but must be eventually consistent for analytics accuracy.
+**Note:** Updates are done synchronously for simplicity. A simple UPDATE query is fast (< 5ms) and ensures immediate consistency for analytics. This approach keeps the implementation straightforward while still meeting the < 100ms redirect latency requirement.
 
 **Write Flow:**
 1. Write to PostgreSQL
