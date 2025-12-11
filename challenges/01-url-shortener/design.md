@@ -88,6 +88,8 @@
 }
 ```
 
+**Note:** `click_count` is incremented and `last_accessed` is updated on each redirect request (see Read Flow in Caching Strategy section). This enables both analytics tracking and cache TTL optimization based on URL popularity.
+
 ## Database Design
 
 ### Choice: PostgreSQL (SQL)
@@ -100,6 +102,7 @@ CREATE TABLE short_urls (
     original_url TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     click_count BIGINT DEFAULT 0,
+    last_accessed TIMESTAMP,
     INDEX idx_short_code (short_code),
     INDEX idx_created_at (created_at)
 );
@@ -166,12 +169,18 @@ The counter-based approach provides guaranteed uniqueness without collision hand
 
 ### Choice: Cache-Aside Pattern with Redis
 
-**Read Flow:**
+**Read Flow (Redirect):**
 1. Check Redis cache first
-2. If cache hit, return immediately
-3. If cache miss, query PostgreSQL
-4. Store result in Redis with TTL
-5. Return to client
+2. If cache hit:
+   - Increment `click_count` and update `last_accessed` in database (async or sync, depending on requirements)
+   - Return redirect immediately
+3. If cache miss:
+   - Query PostgreSQL for original URL
+   - Increment `click_count` and update `last_accessed` in database
+   - Store result in Redis with TTL (based on updated click_count)
+   - Return redirect to client
+
+**Note:** `click_count` and `last_accessed` updates can be done asynchronously to avoid impacting redirect latency, but must be eventually consistent for analytics accuracy.
 
 **Write Flow:**
 1. Write to PostgreSQL
@@ -186,9 +195,10 @@ The counter-based approach provides guaranteed uniqueness without collision hand
 - Use `click_count` field from database to determine popularity
 - **Popular:** `click_count > 100` → 24 hours TTL
 - **Regular:** `click_count ≤ 100` → 1 hour TTL
-- When caching a URL, check `click_count` from database (or cached value)
+- When caching a URL (cache miss), check `click_count` from database to determine TTL
+- When URL expires from cache and is re-cached, check updated `click_count` to determine new TTL
 - This ensures frequently accessed URLs stay in cache longer, reducing database load
-- URLs start as "regular" and become "popular" as they accumulate clicks
+- URLs start as "regular" and become "popular" as they accumulate clicks (click_count is incremented on each redirect)
 
 **Redis Architecture:**
 - **Shared service** - All app server instances connect to the same Redis cluster
@@ -307,10 +317,12 @@ For 100 million URLs:
 
 1. **Rate Limiting**
    - **Implemented at Load Balancer level** - First line of defense
-   - Prevent abuse: 10 requests/minute per IP for URL creation
+   - Prevent abuse: 100 requests/minute per IP for URL creation (~1.67 req/sec per IP)
+   - This allows the system to support 100 writes/sec from distributed sources while preventing abuse from single IPs
    - Blocks abusive traffic before reaching application servers
    - API key authentication for higher rate limits (handled by app servers)
    - Load balancer tracks request counts per IP address
+   - **Note:** With 100 req/min per IP limit, the system can support 100 writes/sec from ~60+ unique IPs, which is realistic for a public URL shortener service
 
 2. **URL Validation**
    - Whitelist allowed protocols (http, https only)
