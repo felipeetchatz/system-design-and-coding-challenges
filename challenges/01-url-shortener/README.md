@@ -4,6 +4,12 @@
 
 Design a URL shortener service that can convert long URLs into short, shareable links. The service should be able to handle millions of requests per day and provide basic analytics.
 
+## Documentation Structure
+
+- **Design:** See [`design.md`](./design.md) for the complete system design, architecture, and implementation decisions
+- **Implementation:** Code implementation will be located in [`implementation/`](./implementation/) directory
+- **Notes:** See [`notes.md`](./notes.md) for learnings and concepts from "Designing Data-Intensive Applications"
+
 ## Functional Requirements
 
 1. **URL Shortening**
