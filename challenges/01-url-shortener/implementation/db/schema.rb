@@ -10,8 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 0) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_11_175802) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
+  create_table "short_urls", force: :cascade do |t|
+    t.string "short_code", limit: 6, null: false
+    t.text "original_url", null: false
+    t.bigint "click_count", default: 0, null: false
+    t.datetime "last_accessed", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "idx_created_at"
+    t.index ["short_code"], name: "idx_short_code", unique: true
+  end
 end
