@@ -50,7 +50,6 @@ Design a URL shortener service that can convert long URLs into short, shareable 
 - Short URLs should be 6 characters long (Base62: a-z, A-Z, 0-9)
 - 6 characters provide 56.8 billion possible URLs (sufficient for 100 million requirement)
 - Original URLs can be up to 2048 characters
-- Short URLs should expire after a configurable time (optional)
 - System should handle both HTTP and HTTPS URLs
 
 ## Out of Scope (for MVP)

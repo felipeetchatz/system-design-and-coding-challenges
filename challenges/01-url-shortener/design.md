@@ -191,13 +191,9 @@ The counter-based approach provides guaranteed uniqueness without collision hand
 - **LRU eviction** for memory management
 
 **How we determine Popular vs Regular URLs:**
-- Use `click_count` field from database to determine popularity
-- **Popular:** `click_count > 100` → 24 hours TTL
-- **Regular:** `click_count ≤ 100` → 1 hour TTL
-- When caching a URL (cache miss), check `click_count` from database to determine TTL
-- When URL expires from cache and is re-cached, check updated `click_count` to determine new TTL
-- This ensures frequently accessed URLs stay in cache longer, reducing database load
-- URLs start as "regular" and become "popular" as they accumulate clicks (click_count is incremented on each redirect)
+- Use `click_count` from database: **Popular** (`click_count > 100`) → 24h TTL, **Regular** (`click_count ≤ 100`) → 1h TTL
+- Check `click_count` when caching (cache miss) and when re-caching after expiration
+- URLs start as "regular" and become "popular" as they accumulate clicks
 
 **Redis Architecture:**
 - **Shared service** - All app server instances connect to the same Redis cluster
@@ -316,12 +312,10 @@ For 100 million URLs:
 
 1. **Rate Limiting**
    - **Implemented at Load Balancer level** - First line of defense
-   - Prevent abuse: 100 requests/minute per IP for URL creation (~1.67 req/sec per IP)
-   - This allows the system to support 100 writes/sec from distributed sources while preventing abuse from single IPs
+   - 100 requests/minute per IP for URL creation (~1.67 req/sec per IP)
+   - Allows system to support 100 writes/sec from distributed sources (~60+ unique IPs)
    - Blocks abusive traffic before reaching application servers
    - API key authentication for higher rate limits (handled by app servers)
-   - Load balancer tracks request counts per IP address
-   - **Note:** With 100 req/min per IP limit, the system can support 100 writes/sec from ~60+ unique IPs, which is realistic for a public URL shortener service
 
 2. **URL Validation**
    - Whitelist allowed protocols (http, https only)
