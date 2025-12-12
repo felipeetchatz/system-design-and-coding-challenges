@@ -2,6 +2,8 @@ require "test_helper"
 
 module ShortUrls
   class IncrementClickTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::TimeHelpers
+
     test "increments click_count by 1" do
       url = "https://www.example.com/test"
       short_url = Create.call(url)
@@ -14,53 +16,60 @@ module ShortUrls
     end
 
     test "updates last_accessed" do
-      url = "https://www.example.com/test"
-      short_url = Create.call(url)
+      freeze_time do
+        url = "https://www.example.com/test"
+        short_url = Create.call(url)
 
-      IncrementClick.call(short_url)
-      short_url.reload
+        IncrementClick.call(short_url)
+        short_url.reload
 
-      assert_not_nil short_url.last_accessed
-      assert_in_delta Time.current, short_url.last_accessed, 1.second
+        assert_not_nil short_url.last_accessed
+        assert_equal Time.current, short_url.last_accessed
+      end
     end
 
     test "persists to database" do
-      url = "https://www.example.com/test"
-      short_url = Create.call(url)
+      freeze_time do
+        url = "https://www.example.com/test"
+        short_url = Create.call(url)
 
-      IncrementClick.call(short_url)
+        IncrementClick.call(short_url)
 
-      reloaded_short_url = ShortUrl.find(short_url.id)
-      assert_equal 1, reloaded_short_url.click_count
-      assert_not_nil reloaded_short_url.last_accessed
+        reloaded_short_url = ShortUrl.find(short_url.id)
+        assert_equal 1, reloaded_short_url.click_count
+        assert_equal Time.current, reloaded_short_url.last_accessed
+      end
     end
 
     test "sets last_accessed to current time" do
-      url = "https://www.example.com/test"
-      short_url = Create.call(url)
+      freeze_time do
+        url = "https://www.example.com/test"
+        short_url = Create.call(url)
 
-      before_time = Time.current
-      IncrementClick.call(short_url)
-      after_time = Time.current
-      short_url.reload
+        IncrementClick.call(short_url)
+        short_url.reload
 
-      assert short_url.last_accessed >= before_time
-      assert short_url.last_accessed <= after_time
+        assert_equal Time.current, short_url.last_accessed
+      end
     end
 
     test "updates timestamp on each call" do
       url = "https://www.example.com/test"
       short_url = Create.call(url)
 
-      IncrementClick.call(short_url)
-      first_access = short_url.reload.last_accessed
+      first_access = nil
+      freeze_time do
+        IncrementClick.call(short_url)
+        first_access = short_url.reload.last_accessed
+        assert_equal Time.current, first_access
+      end
 
-      sleep(0.1) # Small delay to ensure different timestamps
-
-      IncrementClick.call(short_url)
-      second_access = short_url.reload.last_accessed
-
-      assert second_access > first_access
+      travel 1.second do
+        IncrementClick.call(short_url)
+        second_access = short_url.reload.last_accessed
+        assert_equal Time.current, second_access
+        assert second_access > first_access
+      end
     end
   end
 end
