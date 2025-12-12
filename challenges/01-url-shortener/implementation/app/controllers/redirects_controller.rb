@@ -7,8 +7,11 @@ class RedirectsController < ApplicationController
       return
     end
 
+    # Save original_url before IncrementClick (object may be from cache)
+    original_url = short_url.original_url
+    
     ShortUrls::IncrementClick.call(short_url)
 
-    redirect_to short_url.original_url, status: :found
+    redirect_to original_url, status: :found, allow_other_host: true
   end
 end
