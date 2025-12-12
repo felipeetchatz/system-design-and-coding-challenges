@@ -10,7 +10,7 @@ class RedirectsControllerTest < ActionDispatch::IntegrationTest
     get "/#{short_url.short_code}"
 
     assert_response :found
-    assert_redirected_to url
+    assert_equal url, response.headers['Location']
   end
 
   test "returns 404 for non-existent code" do
