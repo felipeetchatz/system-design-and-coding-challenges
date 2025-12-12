@@ -82,4 +82,31 @@ class ShortUrlServiceTest < ActiveSupport::TestCase
       ShortUrlService.create(long_url)
     end
   end
+
+  test "find_by_code returns ShortUrl for valid code" do
+    url = "https://www.example.com/test"
+    created_short_url = ShortUrlService.create(url)
+    
+    found_short_url = ShortUrlService.find_by_code(created_short_url.short_code)
+    
+    assert_not_nil found_short_url
+    assert_equal created_short_url.id, found_short_url.id
+    assert_equal created_short_url.original_url, found_short_url.original_url
+  end
+
+  test "find_by_code returns nil for non-existent code" do
+    non_existent_code = "nonex1"
+    
+    result = ShortUrlService.find_by_code(non_existent_code)
+    
+    assert_nil result
+  end
+
+  test "find_by_code returns nil for invalid code" do
+    invalid_code = "abc-12"
+    
+    result = ShortUrlService.find_by_code(invalid_code)
+    
+    assert_nil result
+  end
 end
