@@ -14,13 +14,17 @@ module ShortUrls
     end
 
     def call
-      @short_url.increment!(:click_count)
-      @short_url.update_column(:last_accessed, Time.current)
+      # Ensure we work with a fresh object from database
+      # Objects from cache may not be in a valid state for increment!
+      fresh_short_url = ShortUrl.find(@short_url.id)
+      
+      fresh_short_url.increment!(:click_count)
+      fresh_short_url.update_column(:last_accessed, Time.current)
 
       # Update cache with fresh data and correct TTL
-      cache_key = "#{CACHE_PREFIX}#{@short_url.short_code}"
-      ttl = @short_url.click_count > POPULAR_THRESHOLD ? POPULAR_TTL : REGULAR_TTL
-      Rails.cache.write(cache_key, @short_url.reload, expires_in: ttl)
+      cache_key = "#{CACHE_PREFIX}#{fresh_short_url.short_code}"
+      ttl = fresh_short_url.click_count > POPULAR_THRESHOLD ? POPULAR_TTL : REGULAR_TTL
+      Rails.cache.write(cache_key, fresh_short_url.reload, expires_in: ttl)
     end
   end
 end
