@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_15_142915) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_15_171148) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "notification_preferences", force: :cascade do |t|
+    t.string "user_id", limit: 255, null: false
+    t.string "channel", limit: 50, null: false
+    t.string "notification_type", limit: 100, null: false
+    t.boolean "enabled", default: true
+    t.time "quiet_hours_start"
+    t.time "quiet_hours_end"
+    t.string "timezone", limit: 50
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "channel", "notification_type"], name: "index_notification_preferences_on_user_channel_type", unique: true
+    t.index ["user_id"], name: "idx_preferences_user_id"
+  end
 
   create_table "notifications", force: :cascade do |t|
     t.string "notification_id", limit: 255, null: false
