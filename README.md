@@ -36,6 +36,9 @@ Each challenge is organized in its own directory with:
 ### Challenge 1: URL Shortener (TinyURL/bit.ly)
 📁 `challenges/01-url-shortener/`
 
+### Challenge 2: Notification Service
+📁 `challenges/02-notification-service/`
+
 ---
 
 ## 🏗️ Project Structure
@@ -45,6 +48,11 @@ Each challenge is organized in its own directory with:
 ├── README.md
 ├── challenges/
 │   ├── 01-url-shortener/
+│   │   ├── README.md          # Problem statement and requirements
+│   │   ├── design.md          # System design document
+│   │   ├── implementation/    # Code implementation (if any)
+│   │   └── notes.md           # Trade-offs and learnings
+│   ├── 02-notification-service/
 │   │   ├── README.md          # Problem statement and requirements
 │   │   ├── design.md          # System design document
 │   │   ├── implementation/    # Code implementation (if any)
