@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_15_171148) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_15_173602) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -26,6 +26,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_15_171148) do
     t.datetime "updated_at", null: false
     t.index ["user_id", "channel", "notification_type"], name: "index_notification_preferences_on_user_channel_type", unique: true
     t.index ["user_id"], name: "idx_preferences_user_id"
+  end
+
+  create_table "notification_templates", force: :cascade do |t|
+    t.string "template_id", limit: 255, null: false
+    t.string "channel", limit: 50, null: false
+    t.string "subject", limit: 500
+    t.text "body", null: false
+    t.jsonb "variables"
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["channel"], name: "idx_templates_channel"
+    t.index ["template_id"], name: "idx_templates_template_id", unique: true
   end
 
   create_table "notifications", force: :cascade do |t|
