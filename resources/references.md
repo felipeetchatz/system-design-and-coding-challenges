@@ -29,3 +29,14 @@ References are added here as we use them in each challenge.
 ### Challenge 1: URL Shortener
 
 - [System Design: URL Shortener](https://www.educative.io/courses/grokking-the-system-design-interview/m2ygV4E81AR) - Detailed walkthrough of URL shortener design
+
+### Challenge 2: Notification Service
+
+- **Designing Data-Intensive Applications - Relevant Chapters:**
+  - Chapter 1: Reliability, Scalability, and Maintainability - Fault tolerance, retry mechanisms
+  - Chapter 9: Consistency and Ordering - At-least-once delivery, eventual consistency
+  - Chapter 11: Stream Processing - Message queues, asynchronous processing
+
+- **Notification Service Design:**
+  - [System Design: Notification Service](https://www.educative.io/courses/grokking-the-system-design-interview/m2G48X18NDo) - Detailed walkthrough of notification service design
+  - [High Scalability - How We Built a Notification Service](http://highscalability.com/blog/2020/1/13/how-we-built-a-notification-service.html) - Real-world implementation patterns
