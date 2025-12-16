@@ -1,7 +1,9 @@
 class CreateNotifications < ActiveRecord::Migration[8.0]
   def change
+    enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+    
     create_table :notifications do |t|
-      t.string :notification_id, null: false, limit: 255
+      t.uuid :notification_id, null: false
       t.string :user_id, null: false, limit: 255
       t.string :channel, null: false, limit: 50
       t.string :template_id, null: false, limit: 255

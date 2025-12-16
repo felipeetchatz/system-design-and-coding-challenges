@@ -44,7 +44,7 @@ class Notification < ApplicationRecord
   end
 
   def generate_notification_id
-    self.notification_id ||= "notif_#{SecureRandom.alphanumeric(16)}"
+    self.notification_id ||= SecureRandom.uuid
   end
 
   def set_queued_at

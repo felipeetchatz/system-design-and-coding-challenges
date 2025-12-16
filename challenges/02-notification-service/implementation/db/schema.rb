@@ -13,6 +13,7 @@
 ActiveRecord::Schema[8.0].define(version: 2025_12_15_173602) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pgcrypto"
 
   create_table "notification_preferences", force: :cascade do |t|
     t.string "user_id", limit: 255, null: false
@@ -42,7 +43,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_15_173602) do
   end
 
   create_table "notifications", force: :cascade do |t|
-    t.string "notification_id", limit: 255, null: false
+    t.uuid "notification_id", null: false
     t.string "user_id", limit: 255, null: false
     t.string "channel", limit: 50, null: false
     t.string "template_id", limit: 255, null: false

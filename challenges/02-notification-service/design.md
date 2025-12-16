@@ -125,7 +125,7 @@
 **Response:**
 ```json
 {
-  "notification_id": "notif_abc123",
+  "notification_id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "queued",
   "queued_at": "2024-01-15T10:30:00Z",
   "estimated_delivery": "2024-01-15T10:30:05Z"
@@ -139,7 +139,7 @@
 **Response:**
 ```json
 {
-  "notification_id": "notif_abc123",
+  "notification_id": "550e8400-e29b-41d4-a716-446655440000",
   "user_id": "12345",
   "channel": "email",
   "status": "delivered",
@@ -185,8 +185,8 @@
   "queued": 2,
   "failed": 0,
   "notification_ids": [
-    "notif_abc123",
-    "notif_def456"
+    "550e8400-e29b-41d4-a716-446655440000",
+    "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
   ]
 }
 ```
@@ -201,7 +201,7 @@
 -- Notifications table
 CREATE TABLE notifications (
     id BIGSERIAL PRIMARY KEY,
-    notification_id VARCHAR(255) UNIQUE NOT NULL,
+    notification_id UUID UNIQUE NOT NULL,
     user_id VARCHAR(255) NOT NULL,
     channel VARCHAR(50) NOT NULL, -- email, sms, push, in_app
     template_id VARCHAR(255) NOT NULL,
