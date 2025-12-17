@@ -173,14 +173,15 @@ RSpec.describe NotificationPreference, type: :model do
               channel: 'email',
               notification_type: 'marketing',
               enabled: true,
-              quiet_hours_start: Time.parse('22:00'),
-              quiet_hours_end: Time.parse('08:00'),
+              quiet_hours_start: Time.zone.parse('22:00'),
+              quiet_hours_end: Time.zone.parse('08:00'),
               timezone: 'UTC'
             )
 
-            # Mock current time to be 23:00 UTC (within quiet hours)
-            allow(Time).to receive(:current).and_return(Time.parse('2025-12-17 23:00:00 UTC'))
-            expect(preference.enabled?).to eq(false)
+            # Travel to 23:00 UTC (within quiet hours)
+            travel_to Time.zone.parse('2025-12-17 23:00:00 UTC') do
+              expect(preference.enabled?).to eq(false)
+            end
           end
 
           it 'returns false when time spans midnight' do
@@ -189,14 +190,15 @@ RSpec.describe NotificationPreference, type: :model do
               channel: 'email',
               notification_type: 'marketing',
               enabled: true,
-              quiet_hours_start: Time.parse('22:00'),
-              quiet_hours_end: Time.parse('08:00'),
+              quiet_hours_start: Time.zone.parse('22:00'),
+              quiet_hours_end: Time.zone.parse('08:00'),
               timezone: 'UTC'
             )
 
             # Test at 02:00 UTC (within quiet hours that span midnight)
-            allow(Time).to receive(:current).and_return(Time.parse('2025-12-17 02:00:00 UTC'))
-            expect(preference.enabled?).to eq(false)
+            travel_to Time.zone.parse('2025-12-17 02:00:00 UTC') do
+              expect(preference.enabled?).to eq(false)
+            end
           end
         end
 
@@ -207,14 +209,15 @@ RSpec.describe NotificationPreference, type: :model do
               channel: 'email',
               notification_type: 'marketing',
               enabled: true,
-              quiet_hours_start: Time.parse('22:00'),
-              quiet_hours_end: Time.parse('08:00'),
+              quiet_hours_start: Time.zone.parse('22:00'),
+              quiet_hours_end: Time.zone.parse('08:00'),
               timezone: 'UTC'
             )
 
-            # Mock current time to be 10:00 UTC (outside quiet hours)
-            allow(Time).to receive(:current).and_return(Time.parse('2025-12-17 10:00:00 UTC'))
-            expect(preference.enabled?).to eq(true)
+            # Travel to 10:00 UTC (outside quiet hours)
+            travel_to Time.zone.parse('2025-12-17 10:00:00 UTC') do
+              expect(preference.enabled?).to eq(true)
+            end
           end
         end
 
@@ -226,16 +229,17 @@ RSpec.describe NotificationPreference, type: :model do
               channel: 'email',
               notification_type: 'marketing',
               enabled: true,
-              quiet_hours_start: Time.parse('22:00'),
-              quiet_hours_end: Time.parse('08:00'),
+              quiet_hours_start: Time.zone.parse('22:00'),
+              quiet_hours_end: Time.zone.parse('08:00'),
               timezone: 'America/Sao_Paulo'
             )
 
             # Current time: 23:00 UTC = 20:00 BRT (outside quiet hours 22:00-08:00 BRT)
-            allow(Time).to receive(:current).and_return(Time.parse('2025-12-17 23:00:00 UTC'))
-            # Convert to user's timezone: 23:00 UTC = 20:00 BRT (UTC-3)
-            # 20:00 is outside quiet hours (22:00-08:00), so should return true
-            expect(preference.enabled?).to eq(true)
+            travel_to Time.zone.parse('2025-12-17 23:00:00 UTC') do
+              # Convert to user's timezone: 23:00 UTC = 20:00 BRT (UTC-3)
+              # 20:00 is outside quiet hours (22:00-08:00), so should return true
+              expect(preference.enabled?).to eq(true)
+            end
           end
 
           it 'returns false when time in user timezone is within quiet hours' do
@@ -244,16 +248,17 @@ RSpec.describe NotificationPreference, type: :model do
               channel: 'email',
               notification_type: 'marketing',
               enabled: true,
-              quiet_hours_start: Time.parse('22:00'),
-              quiet_hours_end: Time.parse('08:00'),
+              quiet_hours_start: Time.zone.parse('22:00'),
+              quiet_hours_end: Time.zone.parse('08:00'),
               timezone: 'America/Sao_Paulo'
             )
 
             # Current time: 01:00 UTC = 22:00 BRT (within quiet hours 22:00-08:00 BRT)
-            allow(Time).to receive(:current).and_return(Time.parse('2025-12-17 01:00:00 UTC'))
-            # Convert to user's timezone: 01:00 UTC = 22:00 BRT (UTC-3)
-            # 22:00 is within quiet hours (22:00-08:00), so should return false
-            expect(preference.enabled?).to eq(false)
+            travel_to Time.zone.parse('2025-12-17 01:00:00 UTC') do
+              # Convert to user's timezone: 01:00 UTC = 22:00 BRT (UTC-3)
+              # 22:00 is within quiet hours (22:00-08:00), so should return false
+              expect(preference.enabled?).to eq(false)
+            end
           end
         end
 
@@ -264,7 +269,7 @@ RSpec.describe NotificationPreference, type: :model do
               channel: 'email',
               notification_type: 'marketing',
               enabled: true,
-              quiet_hours_end: Time.parse('08:00'),
+              quiet_hours_end: Time.zone.parse('08:00'),
               timezone: 'UTC'
             )
             expect(preference.enabled?).to eq(true)
@@ -276,7 +281,7 @@ RSpec.describe NotificationPreference, type: :model do
               channel: 'email',
               notification_type: 'marketing',
               enabled: true,
-              quiet_hours_start: Time.parse('22:00'),
+              quiet_hours_start: Time.zone.parse('22:00'),
               timezone: 'UTC'
             )
             expect(preference.enabled?).to eq(true)
@@ -288,8 +293,8 @@ RSpec.describe NotificationPreference, type: :model do
               channel: 'email',
               notification_type: 'marketing',
               enabled: true,
-              quiet_hours_start: Time.parse('22:00'),
-              quiet_hours_end: Time.parse('08:00')
+              quiet_hours_start: Time.zone.parse('22:00'),
+              quiet_hours_end: Time.zone.parse('08:00')
             )
             expect(preference.enabled?).to eq(true)
           end
