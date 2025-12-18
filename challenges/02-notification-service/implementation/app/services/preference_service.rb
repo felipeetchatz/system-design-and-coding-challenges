@@ -6,9 +6,8 @@ class PreferenceService
   end
 
   def allowed?(user_id, channel, notification_type)
-    key = cache_key(user_id, channel, notification_type)
-
-    if redis
+     if redis
+      key = cache_key(user_id, channel, notification_type)
       cached = redis.get(key)
       return cached == 'true' if cached
     end
