@@ -123,6 +123,79 @@ RSpec.describe PreferenceService do
       end
     end
   end
-end
 
+  describe 'caching' do
+    let(:redis) { instance_double('Redis') }
+    let(:service) { described_class.new(redis: redis) }
+    let(:user_id) { '123' }
+    let(:channel) { 'email' }
+    let(:notification_type) { 'transactional' }
+    let(:cache_key) { "pref:#{user_id}:#{channel}:#{notification_type}" }
+
+    before do
+      NotificationPreference.destroy_all
+    end
+
+    context 'when cache is empty (cache miss)' do
+      it 'loads preference from database and writes result to cache' do
+        NotificationPreference.create!(
+          user_id: user_id,
+          channel: channel,
+          notification_type: notification_type,
+          enabled: true
+        )
+
+        allow(redis).to receive(:get).with(cache_key).and_return(nil)
+        allow(redis).to receive(:setex)
+
+        result = service.allowed?(user_id, channel, notification_type)
+
+        expect(result).to be true
+        expect(redis).to have_received(:setex).with(cache_key, 1.hour.to_i, 'true')
+      end
+
+      it 'caches default allow when no preference exists' do
+        allow(redis).to receive(:get).with(cache_key).and_return(nil)
+        allow(redis).to receive(:setex)
+
+        result = service.allowed?(user_id, channel, notification_type)
+
+        expect(result).to be true
+        expect(redis).to have_received(:setex).with(cache_key, 1.hour.to_i, 'true')
+      end
+    end
+
+    context 'when cache has a value (cache hit)' do
+      it 'returns cached true without hitting the database' do
+        allow(redis).to receive(:get).with(cache_key).and_return('true')
+
+        expect(NotificationPreference).not_to receive(:for_user_and_channel)
+
+        result = service.allowed?(user_id, channel, notification_type)
+
+        expect(result).to be true
+      end
+
+      it 'returns cached false without hitting the database' do
+        allow(redis).to receive(:get).with(cache_key).and_return('false')
+
+        expect(NotificationPreference).not_to receive(:for_user_and_channel)
+
+        result = service.allowed?(user_id, channel, notification_type)
+
+        expect(result).to be false
+      end
+    end
+
+    describe '#invalidate_cache' do
+      it 'removes cached preference from Redis' do
+        allow(redis).to receive(:del)
+
+        service.invalidate_cache(user_id, channel, notification_type)
+
+        expect(redis).to have_received(:del).with(cache_key)
+      end
+    end
+  end
+end
 
