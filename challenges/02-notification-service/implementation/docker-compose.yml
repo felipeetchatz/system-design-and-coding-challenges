@@ -42,6 +42,37 @@ services:
     stdin_open: true
     tty: true
 
+  redis:
+    image: redis:7-alpine
+    container_name: notification_service_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      DATABASE_NAME: ${DATABASE_NAME:-notification_service_development}
+      DATABASE_PORT: 5432
+      RAILS_ENV: development
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
 volumes:
   postgres_data:
   bundle_cache:
+  redis_data:
